@@ -438,6 +438,17 @@ pub fn sanitize_domain(domain: &str) -> Option<String> {
 }
 
 pub fn is_valid_domain(domain: &str) -> bool {
+    // Check for custom reserved TLDs from environment variable
+    if let Ok(reserved_ext_tlds) = std::env::var("RESERVED_EXT_TLDS") {
+        let domain_matches = reserved_ext_tlds.split(',').any(|t| t.trim() == domain);
+        let tld_matches = domain
+            .rsplit_once('.')
+            .is_some_and(|(_, tld)| reserved_ext_tlds.split(',').any(|t| t.trim() == tld));
+        if domain_matches || tld_matches {
+            return true;
+        }
+    }
+    // Check for reserved TLDs
     const RESERVED_TLDS: &[&str] = &[
         "test",
         "localhost",
